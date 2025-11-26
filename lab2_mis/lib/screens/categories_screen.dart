@@ -4,6 +4,7 @@ import '../models/category.dart';
 import '../widgets/category_card.dart';
 import '../widgets/search_bar.dart';
 import 'meals_screen.dart';
+import 'random_meal_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -14,19 +15,23 @@ class CategoriesScreen extends StatefulWidget {
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
   final ApiService _api = ApiService();
-  late Future<List<Category>> _future;
   List<Category> _all = [];
   List<Category> _filtered = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _future = _api.fetchCategories();
-    _future.then((value) {
-      setState(() {
-        _all = value;
-        _filtered = value;
-      });
+    _loadCategories();
+  }
+
+  void _loadCategories() async {
+    final categories = await _api.fetchCategories();
+    if (!mounted) return;
+    setState(() {
+      _all = categories;
+      _filtered = categories;
+      _isLoading = false;
     });
   }
 
@@ -39,56 +44,63 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     setState(() {
       _filtered = _all
           .where((c) => c.name.toLowerCase().contains(low))
-          .toList();    });
+          .toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Категории'),
-          actions: [
-            // IconButton(
-            //   icon: const Icon(Icons.shuffle),
-            //   tooltip: 'Рандом рецепт',
-            //   onPressed: () => Navigator.pushNamed(context, RandomMealScreen.routeName),
-            // ),
-          ],
+      appBar: AppBar(
+        title: const Text('Мени',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        body: FutureBuilder<List<Category>>(
-            future: _future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(child: Text('Грешка: ${snapshot.error}'));
-              }
-
-              return Column(
-                  children: [
-                    SimpleSearchBar(hint: 'Пребарувај категории', onChanged: _onSearch, onClear: () => _onSearch('')),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ListView.builder(
-                          itemCount: _filtered.length,
-                          padding: const EdgeInsets.all(12),
-                          itemBuilder: (context, index) {
-                            final cat = _filtered[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: CategoryCard(category: cat, onTap: () => Navigator.pushNamed(context, MealsScreen.routeName, arguments: cat.name),
-                              ),
-                            );
-                          },
+        actions: [
+          ElevatedButton(
+            child: const Text(
+                'Рандом рецепт',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onPressed: () =>
+                Navigator.pushNamed(context, RandomMealScreen.routeName),
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                SimpleSearchBar(
+                  hint: 'Пребарувај категории',
+                  onChanged: _onSearch,
+                  onClear: () => _onSearch(''),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _filtered.length,
+                    itemBuilder: (context, index) {
+                      final cat = _filtered[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: CategoryCard(
+                          category: cat,
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            MealsScreen.routeName,
+                            arguments: cat.name,
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-              );
-            },
-        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

@@ -14,13 +14,16 @@ class MealCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        color: Colors.deepPurple.shade50,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.deepPurple.shade100, width: 4)
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 child: Image.network(
                   meal.img,
                   fit: BoxFit.cover,

@@ -22,8 +22,8 @@ class Meal {
   factory Meal.fromJson(Map<String, dynamic> json) {
     final Map<String, String> ingr = {};
     for (int i = 1; i <= 20; i++) {
-      final ing = json['strIngredient\$i'];
-      final meas = json['strMeasure\$i'];
+      final ing = json['strIngredient$i'];
+      final meas = json['strMeasure$i'];
       if (ing != null && ing.toString().trim().isNotEmpty) {
         ingr[ing.toString()] = (meas ?? '').toString();
       }

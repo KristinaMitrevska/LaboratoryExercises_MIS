@@ -68,7 +68,7 @@ class ApiService {
       final Map<String, dynamic> data = json.decode(res.body);
       final List meals = data['meals'] ?? [];
       if (meals.isNotEmpty) return Meal.fromJson(meals.first);
-      return null;
     }
+    return null;
   }
 }

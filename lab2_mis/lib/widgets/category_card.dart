@@ -12,7 +12,10 @@ class CategoryCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: Colors.deepPurple.shade50,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.deepPurple.shade100, width: 4)
+        ),
         elevation: 3,
         child: Padding(
           padding: const EdgeInsets.all(12.0),

@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../models/meal.dart';
 import '../widgets/meal_card.dart';
 import '../widgets/search_bar.dart';
+import 'meal_detail_screen.dart';
 
 class MealsScreen extends StatefulWidget {
   static const routeName = '/meals';
@@ -14,10 +15,11 @@ class MealsScreen extends StatefulWidget {
 
 class _MealsScreenState extends State<MealsScreen> {
   final ApiService _api = ApiService();
-  late Future<List<Meal>> _future;
   List<Meal> _all = [];
   List<Meal> _filtered = [];
+  bool _isSearching = false;
   String _category = '';
+  bool _isLoading = true;
 
   @override
   void didChangeDependencies() {
@@ -25,81 +27,85 @@ class _MealsScreenState extends State<MealsScreen> {
     final arg = ModalRoute.of(context)!.settings.arguments;
     if (arg is String) {
       _category = arg;
-      _future = _api.fetchMealsByCategory(_category);
-      _future.then((value) {
-        setState(() {
-          _all = value;
-          _filtered = value;
-        });
-      });
+      _loadMeals();
     }
   }
 
-  void _onSearch(String q) async {
-    if (q.trim().isEmpty) {
-      setState(() => _filtered = _all);
+  void _loadMeals() async {
+    final meals = await _api.fetchMealsByCategory(_category);
+    if (!mounted) return;
+    setState(() {
+      _all = meals;
+      _filtered = meals;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _onSearch(String name) async {
+    if (name.isEmpty) {
+      setState(() {
+        _filtered = _all;
+      });
       return;
     }
-    final low = q.toLowerCase();
-    final local = _all.where((m) => m.name.toLowerCase().contains(low)).toList();
 
-    try {
-      final remote = await _api.searchMeals(q);
-      final remoteFiltered = remote.where((m) => m.category == _category).toList();
-      final merged = {for (var m in local) m.id: m};
-      for (var m in remoteFiltered) {
-        merged[m.id] = m;
-      }
-      setState(() => _filtered = merged.values.toList());
-    } catch (_) {
-      setState(() => _filtered = local);
-    }
+    setState(() {
+      _isSearching = true;
+    });
+
+    final List<Meal> meals = await _api.searchMeals(name);
+
+    setState(() {
+      _isSearching = false;
+      _filtered = meals.where((m) => m.category == _category).toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Јадења: $_category')),
-      body: FutureBuilder<List<Meal>>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Грешка: ${snapshot.error}'));
-          }
-
-          return Column(
-            children: [
-              SimpleSearchBar(hint: 'Пребарувај јадења', onChanged: _onSearch, onClear: () => _onSearch('')),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.9,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
+      appBar: AppBar(
+        title: Text(_category, style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                SimpleSearchBar(
+                  hint: 'Пребарувај јадења',
+                  onChanged: _onSearch,
+                  onClear: () => _onSearch(''),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.9,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                          ),
+                      itemCount: _filtered.length,
+                      itemBuilder: (context, index) {
+                        final meal = _filtered[index];
+                        return MealCard(
+                          meal: meal,
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              MealDetailScreen.routeName,
+                              arguments: meal.id,
+                            );
+                          },
+                        );
+                      },
                     ),
-                    itemCount: _filtered.length,
-                    itemBuilder: (context, index) {
-                      final meal = _filtered[index];
-                      return MealCard(
-                        meal: meal,
-                        onTap: () async {
-                          //Navigator.pushNamed(context, MealDetailScreen.routeName, arguments: meal.id);
-                        },
-                      );
-                    },
                   ),
                 ),
-              ),
-            ],
-          );
-        },
-      ),
+              ],
+            ),
     );
   }
 }
