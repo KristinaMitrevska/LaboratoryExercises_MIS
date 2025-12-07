@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "746781902444",
+    "project_id": "lab3-mis-firebase",
+    "storage_bucket": "lab3-mis-firebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746781902444:android:a2d2d99011bfeabcbafa49",
+        "android_client_info": {
+          "package_name": "com.mis.lab3.lab3_mis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPdbMgu6PSlRcekM5PQJSaZv8sPoiFuLA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
