@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/category.dart';
+import '../services/notification_service.dart';
 import '../widgets/category_card.dart';
 import '../widgets/search_bar.dart';
+import 'favorites_screen.dart';
 import 'meals_screen.dart';
 import 'random_meal_screen.dart';
 
@@ -23,6 +25,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   void initState() {
     super.initState();
     _loadCategories();
+    NotificationService.instance.startRepeating(seconds: 30);
   }
 
   void _loadCategories() async {
@@ -58,6 +61,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite, color: Colors.red),
+            onPressed: () {
+              Navigator.pushNamed(context, FavoritesScreen.routeName);
+            },
+          ),
           ElevatedButton(
             child: const Text(
                 'Рандом рецепт',
